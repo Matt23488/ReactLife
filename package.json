@@ -18,9 +18,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && xcopy /e/h/y/q \"./build\" \"./docs\\\" > nul 2>&1",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "poop": "xcopy /e/h/y/q \"./src\" \"./srccp\\\" > nul 2>&1"
   },
   "eslintConfig": {
     "extends": [

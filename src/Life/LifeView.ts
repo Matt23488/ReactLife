@@ -1,7 +1,7 @@
 import { LifePoint, Life, LifeRect, Point } from './api';
 // import BoolArrayLife from './BoolArrayLife';
-// import ScholesLife from './ScholesLife';
-import AbrashLife from './AbrashLife';
+import ScholesLife from './ScholesLife';
+// import AbrashLife from './AbrashLife';
 import * as patterns from './Patterns';
 
 const deadColor = '#333';
@@ -37,7 +37,7 @@ export default class LifeView {
         this._scale = -1;
         this._gridScale = -3;
         this._corner = { x: -2, y: this.lifeHeight - 2 };
-        this._life = new AbrashLife();
+        this._life = new ScholesLife();
         patterns.addR(this._life, { x: 128, y: 128 });
         // this._life = new BoolArrayLife();
         // patterns.addBlinker(this._life, { x: 5, y: 5 });
