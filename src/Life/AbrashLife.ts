@@ -9,14 +9,19 @@ class Cell {
     private static readonly _state = 4;
     private static readonly _statem = 1 << Cell._state;
     private static readonly _countm = 0x0f;
+    private static readonly _next = 5;
+    private static readonly _nextm = 1 << Cell._next;
 
     public get state() { return (this._cell & Cell._statem) !== 0; }
+    public get nextState() { return (this._cell & Cell._nextm) !== 0; }
     public get count() { return this._cell & Cell._countm; }
 
     public get allDead() { return this._cell === 0; }
 
     public makeAlive() { return new Cell(this._cell | Cell._statem); }
     public makeDead() { return new Cell(this._cell & ~Cell._statem); }
+    public nextAlive() { return new Cell(this._cell | Cell._nextm); }
+    public nextDead() { return new Cell(this._cell & ~Cell._nextm); }
 
     public increment() {
         return new Cell(this._cell + 1);
@@ -33,8 +38,12 @@ export default class AbrashLife implements Life {
     private readonly _width = 258;
     private readonly _height = 258;
     private _cells: Cell[][] = [];
+    private _changes: [number, number][] = [];
 
     public constructor() { this.clear(); }
+
+    public get width() { return this._width; }
+    public get height() { return this._height; }
 
     public clear() {
         this._cells = [];
@@ -46,6 +55,8 @@ export default class AbrashLife implements Life {
     private isValidPoint(x: number, y: number) { return 0 < x && x < this._width - 1 && 0 < y && y < this._height - 1; }
 
     private becomeAlive(x: number, y: number) {
+        if (this._cells[x][y].state) return;
+        this._changes.push([x, y]);
         this._cells[x - 1][y - 1] = this._cells[x - 1][y - 1].increment();
         this._cells[x - 1][y + 0] = this._cells[x - 1][y + 0].increment();
         this._cells[x - 1][y + 1] = this._cells[x - 1][y + 1].increment();
@@ -58,6 +69,8 @@ export default class AbrashLife implements Life {
     }
 
     private becomeDead(x: number, y: number) {
+        if (!this._cells[x][y].state) return;
+        this._changes.push([x, y]);
         this._cells[x - 1][y - 1] = this._cells[x - 1][y - 1].decrement();
         this._cells[x - 1][y + 0] = this._cells[x - 1][y + 0].decrement();
         this._cells[x - 1][y + 1] = this._cells[x - 1][y + 1].decrement();
@@ -84,17 +97,33 @@ export default class AbrashLife implements Life {
     }
 
     public step() {
-        const prev = this._cells.map(inner => inner.map(val => ({ state: val.state, count: val.count, allDead: val.allDead })));
-        for (let y = 1; y < this._height - 1; y++) {
-            for (let x = 1; x < this._width - 1; x++) {
-                const cell = prev[x][y];
-                if (cell.allDead) continue;
-
-                const count = cell.count;
-                if (cell.state) {
-                    if (count !== 2 && count !== 3) this.becomeDead(x, y);
-                } else if (count === 3) this.becomeAlive(x, y);
+        const currentChanges: [number, number][] = [];
+        for (let [cx, cy] of this._changes) {
+            const xmin = Math.max(cx - 1, 1);
+            const xmax = Math.min(cx + 2, this._width - 1);
+            const ymin = Math.max(cy - 1, 1);
+            const ymax = Math.min(cy + 2, this._height - 1);
+            for (let y = ymin; y < ymax; y++) {
+                for (let x = xmin; x < xmax; x++) {
+                    const cell = this._cells[x][y];
+                    const { count, state } = cell;
+                    const newState = count === 3 || (count === 2 && state);
+                    
+                    if (state && !newState) {
+                        currentChanges.push([x, y]);
+                        this._cells[x][y] = cell.nextDead();
+                    } else if (!state && newState) {
+                        currentChanges.push([x, y]);
+                        this._cells[x][y] = cell.nextAlive();
+                    }
+                }
             }
+        }
+
+        this._changes = [];
+        for (let [x, y] of currentChanges) {
+            if (this._cells[x][y].nextState) this.becomeAlive(x, y);
+            else this.becomeDead(x, y);
         }
     }
 

@@ -88,6 +88,9 @@ export default class ScholesLife implements Life {
     private readonly _height = 256;
     private _cells: ByteBlock = new ByteBlock(this._width, this._height);
 
+    public get width() { return this._width; }
+    public get height() { return this._height; }
+
     public clear() {
         this._cells = new ByteBlock(this._width, this._height);
     }

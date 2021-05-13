@@ -1,0 +1,23 @@
+:root {
+    --controlsHeight: 50px;
+}
+
+.LifeCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - var(--controlsHeight));
+}
+
+.LifeControls {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: var(--controlsHeight);
+    /* background-color: red; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

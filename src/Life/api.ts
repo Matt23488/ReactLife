@@ -1,4 +1,6 @@
 export interface Life {
+    readonly width: number;
+    readonly height: number;
     clear: () => void;
     get: (x: number, y: number) => boolean;
     set: (x: number, y: number, alive: boolean) => void;

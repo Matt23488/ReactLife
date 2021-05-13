@@ -9,6 +9,9 @@ export default class BoolArrayLife implements Life {
         this.clear();
     }
 
+    public get width() { return this._width; }
+    public get height() { return this._height; }
+
     public clear() {
         this._cells = this.makeCellsArray();
     }

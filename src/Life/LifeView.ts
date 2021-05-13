@@ -3,11 +3,13 @@ import { LifePoint, Life, LifeRect, Point } from './api';
 // import ScholesLife from './ScholesLife';
 import AbrashLife from './AbrashLife';
 import * as patterns from './Patterns';
+import Game from '../Game';
+import { Pattern } from './Patterns';
 
 const deadColor = '#333';
-const aliveColor = '#909';
+const aliveColor = '#a0c';
 const gridColor = '#000';
-const ticksPerSecond = 1000 / 30;
+const ticksPerSecond = 80;//1000 / 10;
 
 function hexStringToArr(color: string) {
     const withoutHash = color.slice(1);
@@ -20,9 +22,7 @@ function hexStringToArr(color: string) {
     return arr;
 }
 
-export default class LifeView {
-    // private _loopHandle: number | undefined;
-    private _doLoop = true;
+export default class LifeView extends Game {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _maxScale = 0;
     private readonly _minScale = -6;
@@ -30,19 +30,17 @@ export default class LifeView {
     private readonly _gridScale: number;
     private _corner: LifePoint;
     private readonly _life: Life;
-    private _prevTime = 0;
 
     public constructor(canvas: string) {
+        super(ticksPerSecond);
         this._canvas = document.getElementById(canvas) as HTMLCanvasElement;
         this._scale = -1;
         this._gridScale = -3;
         this._corner = { x: -2, y: this.lifeHeight - 2 };
         this._life = new AbrashLife();
-        patterns.addR(this._life, { x: 128, y: 128 });
-        // this._life = new BoolArrayLife();
-        // patterns.addBlinker(this._life, { x: 5, y: 5 });
-        // patterns.addAcorn(this._life, { x: 128, y: 128 });
-        // patterns.addAcorn(this._life, { x: 5, y: 5 });
+        // patterns.addR(this._life, { x: 128, y: 128 });
+        // patterns.addAcorn(this._life, { x: 129, y: 129 });
+        patterns.addPattern(this._life, { x: 129, y: 129 }, patterns.puffer2);
         window.addEventListener('resize', this.onWindowResize.bind(this));
         this._canvas.addEventListener('wheel', this.onScroll.bind(this));
         window.addEventListener('keydown', this.onKeyDown.bind(this));
@@ -50,22 +48,22 @@ export default class LifeView {
         this._canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         this._canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
         this.onWindowResize();
-        this.start();
+        this.draw();
+        // this.start();
     }
 
-    public start() {
-        this._doLoop = true;
-        window.requestAnimationFrame(this.loop.bind(this));
+    protected tick(deltaTickTime: number) {
+        this._life.step();
     }
 
-    public stop() {
-        this._doLoop = false;
+    protected render(deltaRenderTime: number) {
+        this.drawDisplay();
     }
 
     private onWindowResize() {
         // this._canvas.width = this._canvas.height = Math.floor(Math.min(window.innerWidth, window.innerHeight) * 0.9);
-        this._canvas.width = window.innerWidth;
-        this._canvas.height = window.innerHeight;
+        this._canvas.width = this._canvas.clientWidth;//window.innerWidth;
+        this._canvas.height = this._canvas.clientHeight;//window.innerHeight;
         this._corner = { x: -2, y: this.lifeHeight - 2 };
     }
 
@@ -75,7 +73,7 @@ export default class LifeView {
                 this.screenshot();
                 break;
             case ' ':
-                if (this._doLoop) this.stop();
+                if (this.running) this.stop();
                 else this.start();
                 break;
         }
@@ -104,16 +102,6 @@ export default class LifeView {
 
     private onMouseUp(ev: MouseEvent) {
         this._dragging = false;
-    }
-
-    private loop(time: number) {
-        const deltaTime = time - this._prevTime;
-        this._life.step();
-        if (deltaTime >= 1000 / ticksPerSecond) {
-            this.draw();
-            this._prevTime = time;
-        }
-        if (this._doLoop) window.requestAnimationFrame(this.loop.bind(this));
     }
 
     private draw() {
@@ -211,6 +199,11 @@ export default class LifeView {
     public get ctx() { return this._canvas.getContext('2d')!; }
     public get width() { return this._canvas.width; }
     public get height() { return this._canvas.height; }
+    public set pattern(p: Pattern) {
+        this._life.clear();
+        patterns.addPattern(this._life, { x: this._life.width / 2, y: this._life.height / 2 }, p);
+        this.draw();
+    }
 
     public scaleUp(v: number) {
         if (this._scale >= 0) return v << this._scale;
