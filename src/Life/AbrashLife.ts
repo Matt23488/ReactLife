@@ -36,7 +36,13 @@ export default class AbrashLife implements Life {
 
     public constructor() { this.clear(); }
 
-    public clear() { this._cells = Array<Cell[]>(this._width).fill(Array<Cell>(this._height).fill(new Cell(0))); }
+    public clear() {
+        this._cells = [];
+        for (let x = 0; x < this._width; x++) {
+            this._cells[x] = [];
+            for (let y = 0; y < this._height; y++) this._cells[x][y] = new Cell(0);
+        }
+    }
     private isValidPoint(x: number, y: number) { return 0 < x && x < this._width - 1 && 0 < y && y < this._height - 1; }
 
     private becomeAlive(x: number, y: number) {
@@ -78,11 +84,10 @@ export default class AbrashLife implements Life {
     }
 
     public step() {
-        const clone = Array<Cell[]>(this._width).fill(Array<Cell>(this._height));
-        for (let y = 0; y < this._height; y++) for (let x = 0; x < this._width; x++) clone[x][y] = this._cells[x][y].clone();
+        const prev = this._cells.map(inner => inner.map(val => ({ state: val.state, count: val.count, allDead: val.allDead })));
         for (let y = 1; y < this._height - 1; y++) {
             for (let x = 1; x < this._width - 1; x++) {
-                const cell = clone[x][y];
+                const cell = prev[x][y];
                 if (cell.allDead) continue;
 
                 const count = cell.count;
