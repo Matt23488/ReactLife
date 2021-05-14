@@ -16,8 +16,11 @@
     bottom: 0;
     left: 0;
     height: var(--controlsHeight);
-    /* background-color: red; */
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.LifeControls > * {
+    margin: 0 2px;
 }

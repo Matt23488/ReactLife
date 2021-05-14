@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const templates = {
-    cells: 'export const ?name? = new PlaintextPattern(\'?data?\');',
-    rle: 'export const ?name? = new RLEPattern(\'?data?\');',
+    cells: 'const ?name? = new PlaintextPattern(\'?data?\');',
+    rle: 'const ?name? = new RLEPattern(\'?data?\');',
 };
 
 function applyTemplate(type, name, data) {
@@ -17,7 +17,12 @@ fs.readdirSync('./Patterns').forEach(pattern => {
     patternExports.push({ name, ts: applyTemplate(type, name, patternData) });
 });
 
-const replacementString = `//--PATTERNS\n${patternExports.map(e => e.ts).join('\n')}\nexport const allPatterns: { [key: string]: Pattern } = { ${patternExports.map(e => e.name).join(', ')} };\n//--END`;
-const code = fs.readFileSync('./src/Life/Patterns.ts').toString();
+const replacementString =
+'//--PATTERNS\n' +
+`${patternExports.map(e => e.ts).join('\n')}\n` +
+`export const allPatterns = { ${patternExports.map(e => e.name).join(', ')} };\n` +
+'export type PatternName = keyof typeof allPatterns;\n' +
+'//--END';
 
+const code = fs.readFileSync('./src/Life/Patterns.ts').toString();
 fs.writeFileSync('./src/Life/Patterns.ts', code.replace(/\/\/--PATTERNS[\s\S]*\/\/--END/i, replacementString));

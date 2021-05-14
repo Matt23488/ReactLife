@@ -1,13 +1,13 @@
 // TODO: Pull in the canvas stuff, but right now it's so tied to the LifeView class
 // that I'm too lazy to separate it
 export default abstract class Game {
-    private readonly _targetFPS: number;
+    public renderTime: number;
     private readonly _limitTick: boolean;
     private _lastRenderTime = 0;
     private _lastTickTime = 0;
 
-    protected constructor(targetFPS: number, limitTick = false) {
-        this._targetFPS = targetFPS;
+    protected constructor(renderTime: number, limitTick = false) {
+        this.renderTime = renderTime;
         this._limitTick = limitTick;
     }
 
@@ -21,7 +21,7 @@ export default abstract class Game {
             this.tick(deltaTickTime);
             this._lastTickTime = time;
         }
-        if (deltaRenderTime >= 1000 / this._targetFPS) {
+        if (deltaRenderTime >= this.renderTime) {
             if (this._limitTick) {
                 this.tick(deltaTickTime);
                 this._lastTickTime = time;

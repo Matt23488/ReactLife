@@ -1,15 +1,14 @@
 import { LifePoint, Life, LifeRect, Point } from './api';
 // import BoolArrayLife from './BoolArrayLife';
 // import ScholesLife from './ScholesLife';
-import AbrashLife from './AbrashLife';
-import * as patterns from './Patterns';
+// import AbrashLife from './AbrashLife';
+import StaffordOneLife from './StaffordOneLife';
 import Game from '../Game';
-import { Pattern } from './Patterns';
+import { allPatterns, Pattern } from './Patterns';
 
 const deadColor = '#333';
 const aliveColor = '#a0c';
 const gridColor = '#000';
-const ticksPerSecond = 80;//1000 / 10;
 
 function hexStringToArr(color: string) {
     const withoutHash = color.slice(1);
@@ -31,16 +30,14 @@ export default class LifeView extends Game {
     private _corner: LifePoint;
     private readonly _life: Life;
 
-    public constructor(canvas: string) {
-        super(ticksPerSecond);
+    public constructor(canvas: string, renderTime: number) {
+        super(renderTime, true);
         this._canvas = document.getElementById(canvas) as HTMLCanvasElement;
         this._scale = -1;
         this._gridScale = -3;
         this._corner = { x: -2, y: this.lifeHeight - 2 };
-        this._life = new AbrashLife();
-        // patterns.addR(this._life, { x: 128, y: 128 });
-        // patterns.addAcorn(this._life, { x: 129, y: 129 });
-        patterns.addPattern(this._life, { x: 129, y: 129 }, patterns.puffer2);
+        this._life = new StaffordOneLife();
+        this.pattern = allPatterns.puffer2;
         window.addEventListener('resize', this.onWindowResize.bind(this));
         this._canvas.addEventListener('wheel', this.onScroll.bind(this));
         window.addEventListener('keydown', this.onKeyDown.bind(this));
@@ -49,7 +46,12 @@ export default class LifeView extends Game {
         this._canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
         this.onWindowResize();
         this.draw();
-        // this.start();
+    }
+
+    public step() {
+        if (this.running) return;
+        this._life.step();
+        this.draw();
     }
 
     protected tick(deltaTickTime: number) {
@@ -62,9 +64,10 @@ export default class LifeView extends Game {
 
     private onWindowResize() {
         // this._canvas.width = this._canvas.height = Math.floor(Math.min(window.innerWidth, window.innerHeight) * 0.9);
-        this._canvas.width = this._canvas.clientWidth;//window.innerWidth;
-        this._canvas.height = this._canvas.clientHeight;//window.innerHeight;
-        this._corner = { x: -2, y: this.lifeHeight - 2 };
+        this._canvas.width = this._canvas.clientWidth;
+        this._canvas.height = this._canvas.clientHeight;
+        this._corner = { x: Math.floor(this._life.width / 2) - Math.floor(this.lifeWidth / 2), y: Math.floor(this._life.height / 2) + Math.floor(this.lifeHeight / 2) };
+        if (!this.running) this.draw();
     }
 
     private onKeyDown(ev: KeyboardEvent) {
@@ -201,7 +204,7 @@ export default class LifeView extends Game {
     public get height() { return this._canvas.height; }
     public set pattern(p: Pattern) {
         this._life.clear();
-        patterns.addPattern(this._life, { x: this._life.width / 2, y: this._life.height / 2 }, p);
+        p.add(this._life, { x: Math.floor(this._life.width / 2), y: Math.floor(this._life.height / 2) });
         this.draw();
     }
 

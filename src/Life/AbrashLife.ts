@@ -35,8 +35,8 @@ class Cell {
 }
 
 export default class AbrashLife implements Life {
-    private readonly _width = 258;
-    private readonly _height = 258;
+    private readonly _width = 1026;//258;
+    private readonly _height = 1026;//258;
     private _cells: Cell[][] = [];
     private _changes: [number, number][] = [];
 
