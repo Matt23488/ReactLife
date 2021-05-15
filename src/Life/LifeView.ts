@@ -44,6 +44,15 @@ export default class LifeView extends Game {
         this._canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
         this._canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         this._canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+        this._canvas.addEventListener('touchstart', this.onTouchStart.bind(this));
+        this._canvas.addEventListener('touchmove', this.onTouchMove.bind(this));
+        this._canvas.addEventListener('touchend', this.onTouchEnd.bind(this));
+        this._canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
+        this._canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
+        this._canvas.addEventListener('pointerup', this.onPointerUp.bind(this));
+        this._canvas.addEventListener('pointercancel', this.onPointerUp.bind(this));
+        this._canvas.addEventListener('pointerout', this.onPointerUp.bind(this));
+        this._canvas.addEventListener('pointerleave', this.onPointerUp.bind(this));
         this.onWindowResize();
         this.draw();
     }
@@ -95,6 +104,14 @@ export default class LifeView extends Game {
         this._dragStart = this.bitmapToLife({ x: ev.clientX, y: ev.clientY });
     }
 
+    private onTouchStart(ev: TouchEvent) {
+        if (ev.touches.length !== 1) return;
+
+        ev.preventDefault();
+        this._dragging = true;
+        this._dragStart = this.bitmapToLife({ x: ev.touches[0].clientX, y: ev.touches[0].clientY });
+    }
+
     private onMouseMove(ev: MouseEvent) {
         if (!this._dragging) return;
 
@@ -103,8 +120,88 @@ export default class LifeView extends Game {
         this.drawDisplay();
     }
 
+    private onTouchMove(ev: TouchEvent) {
+        if (!this._dragging) return;
+
+        ev.preventDefault();
+        const current = this.bitmapToLife({ x: ev.touches[0].clientX, y: ev.touches[0].clientY });
+        this._corner = { x: this._corner.x + this._dragStart.x - current.x, y: this._corner.y + this._dragStart.y - current.y };
+        this.drawDisplay();
+    }
+
     private onMouseUp(ev: MouseEvent) {
         this._dragging = false;
+    }
+
+    private onTouchEnd(ev: TouchEvent) {
+        if (ev.touches.length !== 1) return;
+        ev.preventDefault();
+        this._dragging = false;
+    }
+    
+    private _evCache: PointerEvent[] = [];
+    private _prevDiff = -1;
+    
+    private onPointerDown(ev: PointerEvent) {
+        // The pointerdown event signals the start of a touch interaction.
+        // This event is cached to support 2-finger gestures
+        this._evCache.push(ev);
+    }
+
+    private onPointerMove(ev: PointerEvent) {
+        // This function implements a 2-pointer horizontal pinch/zoom gesture. 
+        //
+        // If the distance between the two pointers has increased (zoom in), 
+        // the taget element's background is changed to "pink" and if the 
+        // distance is decreasing (zoom out), the color is changed to "lightblue".
+        //
+        // This function sets the target element's border to "dashed" to visually
+        // indicate the pointer's target received a move event.
+       
+        // Find this event in the cache and update its record with this event
+        for (let i = 0; i < this._evCache.length; i++) {
+            if (ev.pointerId == this._evCache[i].pointerId) {
+                this._evCache[i] = ev;
+                break;
+            }
+        }
+       
+        // If two pointers are down, check for pinch gestures
+        if (this._evCache.length == 2) {
+            // Calculate the distance between the two pointers
+            const curDiff = Math.sqrt((this._evCache[0].clientX - this._evCache[1].clientX)**2 + (this._evCache[0].clientY - this._evCache[1].clientY)**2);
+            const delta = Math.abs(curDiff - this._prevDiff);
+
+            if (delta > 50) {
+                if (curDiff > this._prevDiff) {
+                    this.zoomIn({ x: Math.floor((this._evCache[0].clientX + this._evCache[1].clientX) / 2), y: Math.floor((this._evCache[0].clientY + this._evCache[1].clientY) / 2) });
+                } else if (curDiff < this._prevDiff) {
+                    // The distance between the two pointers has decreased
+                    this.zoomOut({ x: Math.floor((this._evCache[0].clientX + this._evCache[1].clientX) / 2), y: Math.floor((this._evCache[0].clientY + this._evCache[1].clientY) / 2) });
+                }
+                // Cache the distance for the next move event 
+                this._prevDiff = curDiff;
+            }
+        
+        }
+    }
+
+    private onPointerUp(ev: PointerEvent) {
+        // Remove this pointer from the cache
+        this.removeEvent(ev);
+       
+        // If the number of pointers down is less than two then reset diff tracker
+        if (this._evCache.length < 2) this._prevDiff = -1;
+    }
+
+    private removeEvent(ev: PointerEvent) {
+        // Remove this event from the target's cache
+        for (var i = 0; i < this._evCache.length; i++) {
+            if (this._evCache[i].pointerId == ev.pointerId) {
+                this._evCache.splice(i, 1);
+                break;
+            }
+        }
     }
 
     private draw() {
