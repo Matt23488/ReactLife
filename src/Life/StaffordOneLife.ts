@@ -91,8 +91,8 @@ class Triplet {
 }
 
 export default class StaffordOneLife implements Life {
-    private readonly _width = 88;
-    private readonly _height = 258;
+    private readonly _width = 342;
+    private readonly _height = 1026;
     private _triplets: Triplet[][] = [];
     private _changes: [number, number][] = [];
 
