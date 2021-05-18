@@ -82,12 +82,40 @@ class Triplet {
     public get mup() { return new Triplet(-Triplet._lcountone + Triplet._rcountone + this._triplet); }
     public get mmu() { return new Triplet(-Triplet._lcountone - Triplet._mcountone + this._triplet); }
     public get mmm() { return new Triplet(-Triplet._lcountone - Triplet._mcountone - Triplet._rcountone + this._triplet); }
+    public get lookupKey1() { return this._triplet & 0x0fff };
 
     private static readonly _currentm = Triplet._lcm | Triplet._mcm | Triplet._rcm;
     private static readonly _nextm = Triplet._lnm | Triplet._mnm | Triplet._rnm;
     public get currentState() { return (Triplet._currentm & this._triplet) >> Triplet._rcur; }
     public get nextState() { return (Triplet._nextm & this._triplet) >> Triplet._rnext; }
     public get changed() { return this.currentState !== this.nextState; }
+}
+
+const _lookup = Array<Triplet>(1 << 12);
+const _changed = Array<boolean>(1 << 12);
+for (let left = 0; left < 2; left++) {
+    for (let middle = 0; middle < 2; middle++) {
+        for (let right = 0; right < 2; right++) {
+            for (let lc = 0; lc < 8; lc++) {
+                for (let mc = 0; mc < 7; mc++) {
+                    for (let rc = 0; rc < 8; rc++) {
+                        const t = new Triplet(0)
+                            .setLeftCurrent(left === 1)
+                            .setMiddleCurrent(middle === 1)
+                            .setRightCurrent(right === 1)
+                            .setLeftCountRaw(lc)
+                            .setMiddleCountRaw(mc)
+                            .setRightCountRaw(rc)
+                            .setLeftNext((lc + middle === 3) || ((left === 1) && (lc + middle === 2)))
+                            .setMiddleNext((left + mc + right === 3) || ((middle === 1) && (left + mc + right === 2)))
+                            .setRightNext((middle + rc === 3) || ((right === 1) && (middle + rc === 2)));
+                        _lookup[t.lookupKey1] = t;
+                        _changed[t.lookupKey1] = t.changed;
+                    }
+                }
+            }
+        }
+    }
 }
 
 export default class StaffordOneLife implements Life {
@@ -211,17 +239,10 @@ export default class StaffordOneLife implements Life {
             const maxy = Math.min(cy + 2, this._height - 1);
             for (let y = miny; y < maxy; y++) {
                 for (let x = minx; x < maxx; x++) {
-                    const c = this._triplets[x][y];
-                    let t = c;
-                    const lc = t.leftCount;
-                    const mc = t.middleCount;
-                    const rc = t.rightCount;
-                    t = t.setLeftNext(lc === 3 || (t.leftCurrent && lc === 2));
-                    t = t.setMiddleNext(mc === 3 || (t.middleCurrent && mc === 2));
-                    t = t.setRightNext(rc === 3 || (t.rightCurrent && rc === 2));
-                    if (t.changed) {
+                    const key1 = this._triplets[x][y].lookupKey1;
+                    if (_changed[key1]) {
+                        this._triplets[x][y] = _lookup[key1];
                         currentChanges.push([x, y]);
-                        this._triplets[x][y] = t;
                     }
                 }
             }
