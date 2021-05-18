@@ -20,11 +20,12 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "node scripts/generatePatternExports && react-scripts build",
+    "build": "npm run build-patterns && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "build-patterns": "node scripts/generatePatternExports"
   },
   "eslintConfig": {
     "extends": [

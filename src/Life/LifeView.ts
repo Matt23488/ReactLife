@@ -30,8 +30,8 @@ export default class LifeView extends Game {
     private _corner: LifePoint;
     private readonly _life: Life;
 
-    public constructor(canvas: string, renderTime: number) {
-        super(renderTime, true);
+    public constructor(canvas: string, tickTime: number) {
+        super(tickTime);
         this._canvas = document.getElementById(canvas) as HTMLCanvasElement;
         this._scale = -1;
         this._gridScale = -3;
@@ -63,7 +63,7 @@ export default class LifeView extends Game {
         this.draw();
     }
 
-    protected tick(deltaTickTime: number) {
+    protected tick() {
         this._life.step();
     }
 
@@ -160,14 +160,14 @@ export default class LifeView extends Game {
        
         // Find this event in the cache and update its record with this event
         for (let i = 0; i < this._evCache.length; i++) {
-            if (ev.pointerId == this._evCache[i].pointerId) {
+            if (ev.pointerId === this._evCache[i].pointerId) {
                 this._evCache[i] = ev;
                 break;
             }
         }
        
         // If two pointers are down, check for pinch gestures
-        if (this._evCache.length == 2) {
+        if (this._evCache.length === 2) {
             // Calculate the distance between the two pointers
             const curDiff = Math.sqrt((this._evCache[0].clientX - this._evCache[1].clientX)**2 + (this._evCache[0].clientY - this._evCache[1].clientY)**2);
             const delta = Math.abs(curDiff - this._prevDiff);
@@ -197,7 +197,7 @@ export default class LifeView extends Game {
     private removeEvent(ev: PointerEvent) {
         // Remove this event from the target's cache
         for (var i = 0; i < this._evCache.length; i++) {
-            if (this._evCache[i].pointerId == ev.pointerId) {
+            if (this._evCache[i].pointerId === ev.pointerId) {
                 this._evCache.splice(i, 1);
                 break;
             }

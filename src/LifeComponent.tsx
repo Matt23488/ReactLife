@@ -4,11 +4,12 @@ import LifeView from './Life/LifeView';
 import { allPatterns, PatternName} from './Life/Patterns';
 
 import './LifeComponent.css';
+import Range from './Range';
 
 interface LifeComponentState {
     lifeData?: LifeView;
     selectedPattern: PatternName;
-    renderTime: number;
+    speed: number;
 }
 
 // https://github.com/ericlippert/ConwaysLife/tree/episode11
@@ -20,7 +21,7 @@ export class LifeComponent extends React.Component<{}, LifeComponentState> {
 
         this.state = {
             selectedPattern: 'puffer2',
-            renderTime: 10,
+            speed: 5,
         };
     }
 
@@ -34,18 +35,6 @@ export class LifeComponent extends React.Component<{}, LifeComponentState> {
         this.state.lifeData.pattern = allPatterns[selectedPattern];
 
         this.setState({ selectedPattern });
-    }
-
-    private onRenderTimeChange(ev: React.ChangeEvent<HTMLInputElement>) {
-        if (!this.state.lifeData) return;
-
-        const tickTime = Number(ev.target.value);
-        if (isNaN(tickTime)) return;
-
-        // eslint-disable-next-line
-        this.state.lifeData.renderTime = tickTime;
-
-        this.setState({ renderTime: tickTime });
     }
 
     private onToggleRunning() {
@@ -68,8 +57,19 @@ export class LifeComponent extends React.Component<{}, LifeComponentState> {
         this.state.lifeData.step();
     }
 
+    private onSpeedChange(dir: 1 | -1) {
+        const clamp = (min: number, max: number, val: number) => Math.min(max, Math.max(min, val));
+        if (!this.state.lifeData) return;
+
+        const speed = clamp(0, 15, this.state.speed + dir);
+        // eslint-disable-next-line
+        this.state.lifeData.tickTime = 1000 / 2**speed;
+
+        this.setState({ speed });
+    }
+
     public componentDidMount() {
-        const lifeData = new LifeView('lifeCanvas', this.state.renderTime);
+        const lifeData = new LifeView('lifeCanvas', 1000 / 2**this.state.speed);
         this.setState({ lifeData });
     }
 
@@ -87,7 +87,7 @@ export class LifeComponent extends React.Component<{}, LifeComponentState> {
                             <option key={key} value={key}>{key}</option>
                         ))}
                     </select>
-                    <input type="number" value={this.state.renderTime} onChange={this.onRenderTimeChange.bind(this)} min={10} max={250} step={10} />
+                    <Range min={0} max={15} step={1} value={this.state.speed} onChange={this.onSpeedChange.bind(this)} />
                     <button onClick={this.onReset.bind(this)}><FaFastBackward /></button>
                     <button onClick={this.onToggleRunning.bind(this)}><FaPlay /><FaPause /></button>
                     <button onClick={this.onStepForward.bind(this)}><FaStepForward /></button>

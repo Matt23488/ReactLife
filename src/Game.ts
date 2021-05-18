@@ -1,46 +1,52 @@
 // TODO: Pull in the canvas stuff, but right now it's so tied to the LifeView class
 // that I'm too lazy to separate it
 export default abstract class Game {
+    private _tickTime: number;
     public renderTime: number;
-    private readonly _limitTick: boolean;
-    private _lastRenderTime = 0;
-    private _lastTickTime = 0;
 
-    protected constructor(renderTime: number, limitTick = false) {
-        this.renderTime = renderTime;
-        this._limitTick = limitTick;
+    protected constructor(tickTime: number) {
+        this._tickTime = tickTime;
+        this.renderTime = 100 / 6;
     }
 
     protected abstract render(deltaRenderTime: number): void;
-    protected abstract tick(deltaTickTime: number): void;
+    protected abstract tick(): void;
 
-    private loop(time: number) {
-        const deltaRenderTime = time - this._lastRenderTime;
-        const deltaTickTime = time - this._lastTickTime;
-        if (!this._limitTick) {
-            this.tick(deltaTickTime);
-            this._lastTickTime = time;
+    public set tickTime(value: number) {
+        this._tickTime = value;
+        if (this.running) {
+            window.clearInterval(this._tickLoopHandle);
+            this._tickLoopHandle = window.setInterval(this.tickLoop.bind(this), this._tickTime);
         }
-        if (deltaRenderTime >= this.renderTime) {
-            if (this._limitTick) {
-                this.tick(deltaTickTime);
-                this._lastTickTime = time;
-            }
-            this.render(deltaRenderTime);
-            this._lastRenderTime = time;
-        }
-        if (this._doLoop) window.requestAnimationFrame(this.loop.bind(this));
     }
 
     private _doLoop = false;
     public get running() { return this._doLoop; }
 
+    private _tickLoopHandle = 0;
+    private tickLoop(time: number) {
+        this.tick();
+    }
+    
+    private _lastRenderTime = 0;
+    private renderLoop(time: number) {
+        const deltaTime = time - this._lastRenderTime;
+        if (deltaTime >= this.renderTime) {
+            this.render(deltaTime);
+            this._lastRenderTime = time;
+        }
+        if (this._doLoop) window.requestAnimationFrame(this.renderLoop.bind(this));
+    }
+
     public start() {
+        console.log(this._tickTime);
         this._doLoop = true;
-        window.requestAnimationFrame(this.loop.bind(this));
+        window.requestAnimationFrame(this.renderLoop.bind(this));
+        this._tickLoopHandle = window.setInterval(this.tickLoop.bind(this), this._tickTime);
     }
 
     public stop() {
         this._doLoop = false;
+        window.clearInterval(this._tickLoopHandle);
     }
 }

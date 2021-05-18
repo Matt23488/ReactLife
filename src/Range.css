@@ -1,0 +1,28 @@
+.Range {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+.Range_Display {
+    color: white;
+    font-size: 2rem;
+    padding: 10px;
+}
+
+.Range_Button {
+    font-size: 2rem;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.Range_Button:hover {
+    color: gray;
+}
