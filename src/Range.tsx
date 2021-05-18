@@ -1,14 +1,15 @@
 import React from 'react';
-import { FaPlusSquare, FaMinusSquare } from 'react-icons/fa';
+import { VscAdd, VscChromeMinimize } from 'react-icons/vsc';
+import Button from './Button';
 
 import './Range.css';
 
 export default function Range(props: RangeProperties) {
     return (
         <div className="Range">
-            <button className="Range_Button" onClick={() => props.onChange(-1)}><FaMinusSquare /></button>
+            <Button onClick={() => props.onChange(-1)}><VscChromeMinimize /></Button>
             <span className="Range_Display">{props.value}</span>
-            <button className="Range_Button" onClick={() => props.onChange(1)}><FaPlusSquare /></button>
+            <Button onClick={() => props.onChange(1)}><VscAdd /></Button>
         </div>
     );
 }

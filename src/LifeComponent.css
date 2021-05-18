@@ -1,5 +1,18 @@
 :root {
     --controlsHeight: 50px;
+    --iconSize: 2rem;
+}
+
+@media (max-width: 600px) {
+    :root {
+        --iconSize: 1.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    :root {
+        --iconSize: 1rem;
+    }
 }
 
 .LifeCanvas {
@@ -7,7 +20,7 @@
     top: 0;
     left: 0;
     width: 100vw;
-    height: calc(100vh - var(--controlsHeight));
+    height: 100vh;
 }
 
 .LifeControls {
@@ -15,12 +28,11 @@
     right: 0;
     bottom: 0;
     left: 0;
-    height: var(--controlsHeight);
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
 .LifeControls > * {
-    margin: 0 2px;
+    margin: 0 16px;
 }

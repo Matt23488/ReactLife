@@ -1,0 +1,13 @@
+.Button {
+    display: flex;
+    font-size: var(--iconSize);
+    padding: 0;
+    color: white;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.Button:hover {
+    color: gray;
+}

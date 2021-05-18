@@ -1,10 +1,12 @@
 import React from 'react';
-import { FaPlay, FaPause, FaFastBackward, FaStepForward } from 'react-icons/fa';
+import { VscDebugRestart, VscDebugStepOver, VscDebugStart, VscDebugPause } from 'react-icons/vsc';
+import Button from './Button';
 import LifeView from './Life/LifeView';
-import { allPatterns, PatternName} from './Life/Patterns';
+import { allPatterns, PatternName } from './Life/Patterns';
 
 import './LifeComponent.css';
 import Range from './Range';
+import Select from './Select';
 
 interface LifeComponentState {
     lifeData?: LifeView;
@@ -12,8 +14,8 @@ interface LifeComponentState {
     speed: number;
 }
 
-// https://github.com/ericlippert/ConwaysLife/tree/episode11
-// https://ericlippert.com/2020/06/15/life-part-15/
+// https://github.com/ericlippert/ConwaysLife/tree/episode18
+// https://ericlippert.com/2020/06/25/life-part-18/
 export class LifeComponent extends React.Component<{}, LifeComponentState> {
 
     public constructor(props: {}) {
@@ -41,6 +43,7 @@ export class LifeComponent extends React.Component<{}, LifeComponentState> {
         if (!this.state.lifeData) return;
         if (this.state.lifeData.running) this.state.lifeData.stop();
         else this.state.lifeData.start();
+        this.forceUpdate();
     }
 
     private onReset() {
@@ -49,10 +52,11 @@ export class LifeComponent extends React.Component<{}, LifeComponentState> {
         if (this.state.lifeData.running) this.state.lifeData.stop();
         // eslint-disable-next-line
         this.state.lifeData.pattern = allPatterns[this.state.selectedPattern];
+        this.forceUpdate();
     }
 
     private onStepForward() {
-        if (!this.state.lifeData) return;
+        if (!this.state.lifeData || this.state.lifeData.running) return;
 
         this.state.lifeData.step();
     }
@@ -82,15 +86,19 @@ export class LifeComponent extends React.Component<{}, LifeComponentState> {
             <div className="Life">
                 <canvas className="LifeCanvas" id="lifeCanvas" />
                 <div className="LifeControls">
-                    <select value={this.state.selectedPattern} onChange={this.onPatternChange.bind(this)}>
-                        {Object.keys(allPatterns).map(key => (
-                            <option key={key} value={key}>{key}</option>
-                        ))}
-                    </select>
+                    <div>
+                        <Select value={this.state.selectedPattern} onChange={this.onPatternChange.bind(this)}>
+                            {Object.keys(allPatterns).map(key => (
+                                <option key={key} value={key}>{key}</option>
+                            ))}
+                        </Select>
+                    </div>
+                    <div style={{ display: 'flex' }}>
+                        <Button onClick={this.onReset.bind(this)}><VscDebugRestart /></Button>
+                        <Button onClick={this.onToggleRunning.bind(this)}>{this.state.lifeData?.running ? <VscDebugPause /> : <VscDebugStart />}</Button>
+                        <Button onClick={this.onStepForward.bind(this)}><VscDebugStepOver /></Button>
+                    </div>
                     <Range min={0} max={15} step={1} value={this.state.speed} onChange={this.onSpeedChange.bind(this)} />
-                    <button onClick={this.onReset.bind(this)}><FaFastBackward /></button>
-                    <button onClick={this.onToggleRunning.bind(this)}><FaPlay /><FaPause /></button>
-                    <button onClick={this.onStepForward.bind(this)}><FaStepForward /></button>
                 </div>
             </div>
         );
